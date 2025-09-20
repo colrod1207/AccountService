@@ -1,0 +1,116 @@
+package org.banking.accountms.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.banking.accountms.adapter.ClientGateway;
+import org.banking.accountms.dto.request.CreateAccountRequest;
+import org.banking.accountms.dto.response.AccountResponse;
+import org.banking.accountms.exception.ResourceNotFoundException;
+import org.banking.accountms.mapper.AccountMapper;
+import org.banking.accountms.model.Account;
+import org.banking.accountms.repository.AccountRepository;
+import org.banking.accountms.service.factory.AccountFactoryProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.validation.ValidationException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class AccountService {
+
+    private final AccountRepository accountRepository;
+    private final AccountValidator validator;
+    private final ClientGateway clientGateway;
+    private final AccountNumberGenerator accountNumberGenerator;
+
+    private AccountService self;
+
+    @Autowired
+    public void setSelf(@Lazy AccountService self) {
+        this.self = self;
+    }
+
+    @Transactional
+    public AccountResponse createAccount(CreateAccountRequest request) {
+        validator.validate(request);
+
+        if (!clientGateway.exists(request.getClientId())) {
+            throw new IllegalArgumentException("El cliente con ID " + request.getClientId() + " no existe.");
+        }
+
+        String accountNumber = accountNumberGenerator.generate(request.getType());
+
+        Account account = AccountFactoryProvider
+                .getFactory(request.getType())
+                .createAccount(request.getClientId(), request.getInitialBalance());
+
+        account.setAccountNumber(accountNumber);
+
+        accountRepository.save(account);
+        log.info("Cuenta creada con factory: {}", account.getAccountNumber());
+        return AccountMapper.toResponse(account);
+    }
+
+    @Transactional(readOnly = true)
+    public Account get(Long accountId) {
+        return accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<AccountResponse> listAll() {
+        return accountRepository.findAll()
+                .stream()
+                .map(AccountMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<AccountResponse> listByClient(Long clientId) {
+        return accountRepository.findByClientId(clientId)
+                .stream()
+                .map(account -> AccountResponse.builder()
+                        .id(account.getId())
+                        .accountNumber(account.getAccountNumber())
+                        .balance(account.getBalance())
+                        .type(account.getType())
+                        .clientId(account.getClientId())
+                        .build())
+                .collect(Collectors.toList()); // 👈 aquí el cambio
+    }
+
+    @Transactional
+    public void delete(Long accountId) {
+        Account account = self.get(accountId);
+        if (account.getBalance().compareTo(BigDecimal.ZERO) != 0) {
+            throw new ValidationException("No se puede eliminar una cuenta con saldo distinto de 0.");
+        }
+        accountRepository.delete(account);
+        log.info("Cuenta eliminada: {}", account.getAccountNumber());
+    }
+
+    @Transactional
+    public AccountResponse deactivate(Long accountId) {
+        Account account = self.get(accountId);
+        account.setActive(false);
+        Account updated = accountRepository.save(account);
+        log.info("Cuenta desactivada: {}", updated.getAccountNumber());
+        return AccountMapper.toResponse(updated);
+    }
+
+    @Transactional
+    public AccountResponse activate(Long accountId) {
+        Account account = self.get(accountId);
+        account.setActive(true);
+        Account updated = accountRepository.save(account);
+        log.info("Cuenta activada: {}", updated.getAccountNumber());
+        return AccountMapper.toResponse(updated);
+    }
+
+}
