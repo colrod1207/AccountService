@@ -1,11 +1,10 @@
 package org.banking.accountms.service;
 
+import java.security.SecureRandom;
 import lombok.AllArgsConstructor;
 import org.banking.accountms.model.AccountType;
 import org.banking.accountms.repository.AccountRepository;
 import org.springframework.stereotype.Component;
-
-import java.security.SecureRandom;
 
 @Component
 @AllArgsConstructor

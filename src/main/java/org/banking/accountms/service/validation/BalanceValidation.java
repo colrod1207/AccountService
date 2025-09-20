@@ -1,10 +1,9 @@
 package org.banking.accountms.service.validation;
 
+import java.math.BigDecimal;
+import javax.validation.ValidationException;
 import org.banking.accountms.dto.request.CreateAccountRequest;
 import org.springframework.stereotype.Component;
-
-import javax.validation.ValidationException;
-import java.math.BigDecimal;
 
 @Component
 public class BalanceValidation implements ValidationRule {

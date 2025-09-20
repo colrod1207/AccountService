@@ -1,5 +1,7 @@
 package org.banking.accountms.controller;
 
+import java.util.List;
+import javax.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,9 +13,6 @@ import org.banking.accountms.dto.response.AccountResponse;
 import org.banking.accountms.service.AccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.List;
 
 @Tag(name = "Accounts", description = "Operations related to bank accounts")
 @RestController

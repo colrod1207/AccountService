@@ -1,9 +1,8 @@
 package org.banking.accountms.service.factory;
 
+import java.math.BigDecimal;
 import org.banking.accountms.model.Account;
 import org.banking.accountms.model.AccountType;
-
-import java.math.BigDecimal;
 
 public class SavingsAccountFactory implements AccountFactory {
     @Override

@@ -1,13 +1,12 @@
 package org.banking.accountms.dto.request;
 
+import java.math.BigDecimal;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.banking.accountms.model.AccountType;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor

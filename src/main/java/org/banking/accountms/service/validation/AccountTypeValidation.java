@@ -1,9 +1,8 @@
 package org.banking.accountms.service.validation;
 
+import javax.validation.ValidationException;
 import org.banking.accountms.dto.request.CreateAccountRequest;
 import org.springframework.stereotype.Component;
-
-import javax.validation.ValidationException;
 
 @Component
 public class AccountTypeValidation implements ValidationRule {

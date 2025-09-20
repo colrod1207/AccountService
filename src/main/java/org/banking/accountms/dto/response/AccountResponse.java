@@ -1,12 +1,11 @@
 package org.banking.accountms.dto.response;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.banking.accountms.model.AccountType;
-
-import java.math.BigDecimal;
 
 @Data
 @Builder

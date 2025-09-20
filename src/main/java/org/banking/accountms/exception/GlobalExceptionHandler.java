@@ -1,6 +1,7 @@
 package org.banking.accountms.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import javax.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,8 +9,6 @@ import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import javax.validation.ValidationException;
 
 @Slf4j
 @ControllerAdvice
