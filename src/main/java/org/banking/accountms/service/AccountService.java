@@ -45,6 +45,8 @@ public class AccountService {
             throw new IllegalArgumentException("El cliente con ID " + request.getClientId() + " no existe.");
         }
 
+        validator.validate(request);
+
         String accountNumber = accountNumberGenerator.generate(request.getType());
 
         Account account = AccountFactoryProvider
@@ -82,7 +84,7 @@ public class AccountService {
                         .type(account.getType())
                         .clientId(account.getClientId())
                         .build())
-                .collect(Collectors.toList()); // 👈 aquí el cambio
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -95,21 +97,25 @@ public class AccountService {
         log.info("Cuenta eliminada: {}", account.getAccountNumber());
     }
 
-    @Transactional
-    public AccountResponse deactivate(Long accountId) {
-        Account account = self.get(accountId);
-        account.setActive(false);
+    public AccountResponse activate(Long id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada"));
+        if (account.isActive()) {
+            throw new ValidationException("La cuenta ya está activa");
+        }
+        account.setActive(true);
         Account updated = accountRepository.save(account);
-        log.info("Cuenta desactivada: {}", updated.getAccountNumber());
         return AccountMapper.toResponse(updated);
     }
 
-    @Transactional
-    public AccountResponse activate(Long accountId) {
-        Account account = self.get(accountId);
-        account.setActive(true);
+    public AccountResponse deactivate(Long id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada"));
+        if (!account.isActive()) {
+            throw new ValidationException("La cuenta ya está inactiva");
+        }
+        account.setActive(false);
         Account updated = accountRepository.save(account);
-        log.info("Cuenta activada: {}", updated.getAccountNumber());
         return AccountMapper.toResponse(updated);
     }
 

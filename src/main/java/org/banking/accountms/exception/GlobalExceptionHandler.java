@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -58,13 +58,12 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("INTERNAL_ERROR", "Error interno del servidor"));
     }
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidFormat(HttpMessageNotReadableException ex) {
+    @ExceptionHandler(HttpMessageConversionException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFormat(HttpMessageConversionException ex) {
         String message = "Formato de datos inválido.";
 
         if (ex.getCause() instanceof InvalidFormatException) {
             InvalidFormatException cause = (InvalidFormatException) ex.getCause();
-
             if (cause.getTargetType().isEnum()) {
                 message = "Valor inválido para el campo 'type'. Valores permitidos: SAVINGS, CHECKING.";
             }
@@ -74,4 +73,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("INVALID_FORMAT", message));
     }
+
 }

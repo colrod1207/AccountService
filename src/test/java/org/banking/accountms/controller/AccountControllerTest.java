@@ -1,83 +1,135 @@
 package org.banking.accountms.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.banking.accountms.dto.request.CreateAccountRequest;
 import org.banking.accountms.dto.response.AccountResponse;
+import org.banking.accountms.model.Account;
 import org.banking.accountms.model.AccountType;
 import org.banking.accountms.service.AccountService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@WebMvcTest(AccountController.class)
 class AccountControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private AccountService accountService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @InjectMocks
+    private AccountController accountController;
 
-    @Test
-    void createAccount_returns200() throws Exception {
-        AccountResponse response = new AccountResponse(1L, "SVG-123456", new BigDecimal("100"), AccountType.SAVINGS, 1L, true);
-        Mockito.when(accountService.createAccount(any(CreateAccountRequest.class))).thenReturn(response);
+    private AccountResponse sampleResponse;
+    private Account sampleAccount;
 
-        CreateAccountRequest request = new CreateAccountRequest(1L, AccountType.SAVINGS, new BigDecimal("100"));
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
 
-        mockMvc.perform(post("/cuentas")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accountNumber").value("SVG-123456"))
-                .andExpect(jsonPath("$.active").value(true));
+        sampleResponse = AccountResponse.builder()
+                .id(1L)
+                .accountNumber("ACC123")
+                .balance(BigDecimal.valueOf(1000))
+                .type(AccountType.SAVINGS)
+                .clientId(10L)
+                .build();
+
+        sampleAccount = Account.builder()
+                .id(1L)
+                .accountNumber("ACC123")
+                .balance(BigDecimal.valueOf(1000))
+                .type(AccountType.SAVINGS)
+                .clientId(10L)
+                .active(true)
+                .build();
     }
 
     @Test
-    void listAll_returns200() throws Exception {
-        List<AccountResponse> list = List.of(
-                new AccountResponse(1L, "SVG-111111", new BigDecimal("100"), AccountType.SAVINGS, 1L, true),
-                new AccountResponse(2L, "CH-222222", new BigDecimal("200"), AccountType.CHECKING, 2L, false)
-        );
-        Mockito.when(accountService.listAll()).thenReturn(list);
+    void testCreate() {
+        CreateAccountRequest request = new CreateAccountRequest();
+        request.setClientId(10L);
+        request.setInitialBalance(BigDecimal.valueOf(1000));
+        request.setType(AccountType.SAVINGS);
 
-        mockMvc.perform(get("/cuentas"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].accountNumber").value("SVG-111111"))
-                .andExpect(jsonPath("$[1].active").value(false));
+        when(accountService.createAccount(request)).thenReturn(sampleResponse);
+
+        ResponseEntity<AccountResponse> response = accountController.create(request);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("ACC123", response.getBody().getAccountNumber());
+        verify(accountService, times(1)).createAccount(request);
     }
 
     @Test
-    void activateAccount_returns200() throws Exception {
-        AccountResponse response = new AccountResponse(1L, "CH-333333", new BigDecimal("0"), AccountType.CHECKING, 1L, true);
-        Mockito.when(accountService.activate(1L)).thenReturn(response);
+    void testGetById() {
+        when(accountService.get(1L)).thenReturn(sampleAccount);
 
-        mockMvc.perform(patch("/cuentas/{id}/activate", 1L))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.active").value(true));
+        ResponseEntity<AccountResponse> response = accountController.getById(1L);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("ACC123", response.getBody().getAccountNumber());
+        assertEquals(BigDecimal.valueOf(1000), response.getBody().getBalance());
+        verify(accountService, times(1)).get(1L);
     }
 
     @Test
-    void deactivateAccount_returns200() throws Exception {
-        AccountResponse response = new AccountResponse(1L, "CH-444444", new BigDecimal("0"), AccountType.CHECKING, 1L, false);
-        Mockito.when(accountService.deactivate(1L)).thenReturn(response);
+    void testListAll() {
+        when(accountService.listAll()).thenReturn(List.of(sampleResponse));
 
-        mockMvc.perform(patch("/cuentas/{id}/deactivate", 1L))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.active").value(false));
+        ResponseEntity<List<AccountResponse>> response = accountController.listAll();
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(1, response.getBody().size());
+        verify(accountService, times(1)).listAll();
+    }
+
+    @Test
+    void testListByClient() {
+        when(accountService.listByClient(10L)).thenReturn(List.of(sampleResponse));
+
+        ResponseEntity<List<AccountResponse>> response = accountController.listByClient(10L);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(1, response.getBody().size());
+        verify(accountService, times(1)).listByClient(10L);
+    }
+
+    @Test
+    void testDelete() {
+        doNothing().when(accountService).delete(1L);
+
+        ResponseEntity<Void> response = accountController.delete(1L);
+
+        assertEquals(204, response.getStatusCodeValue());
+        verify(accountService, times(1)).delete(1L);
+    }
+
+    @Test
+    void testDeactivate() {
+        when(accountService.deactivate(1L)).thenReturn(sampleResponse);
+
+        ResponseEntity<AccountResponse> response = accountController.deactivate(1L);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("ACC123", response.getBody().getAccountNumber());
+        verify(accountService, times(1)).deactivate(1L);
+    }
+
+    @Test
+    void testActivate() {
+        when(accountService.activate(1L)).thenReturn(sampleResponse);
+
+        ResponseEntity<AccountResponse> response = accountController.activate(1L);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("ACC123", response.getBody().getAccountNumber());
+        verify(accountService, times(1)).activate(1L);
     }
 }
