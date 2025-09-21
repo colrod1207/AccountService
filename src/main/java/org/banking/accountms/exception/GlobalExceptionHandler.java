@@ -3,6 +3,7 @@ package org.banking.accountms.exception;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import javax.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
+import org.banking.accountms.common.Messages;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
@@ -18,7 +19,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
         log.error("Error NOT_FOUND: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse("NOT_FOUND", ex.getMessage()));
+                .body(new ErrorResponse("NOT_FOUND", Messages.ACCOUNT_NOT_FOUND));
     }
 
     @ExceptionHandler(ValidationException.class)
@@ -47,24 +48,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex) {
         log.error("Error SERVICE_UNAVAILABLE: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(new ErrorResponse("SERVICE_UNAVAILABLE", ex.getMessage()));
+                .body(new ErrorResponse("SERVICE_UNAVAILABLE", Messages.ACCOUNT_NUMBER_GENERATION_FAILED));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
         log.error("Error INTERNAL: ", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("INTERNAL_ERROR", "Error interno del servidor"));
+                .body(new ErrorResponse("INTERNAL_ERROR", Messages.INTERNAL_ERROR));
     }
 
     @ExceptionHandler(HttpMessageConversionException.class)
     public ResponseEntity<ErrorResponse> handleInvalidFormat(HttpMessageConversionException ex) {
-        String message = "Formato de datos inválido.";
+        String message = Messages.INVALID_FORMAT;
 
         if (ex.getCause() instanceof InvalidFormatException) {
             InvalidFormatException cause = (InvalidFormatException) ex.getCause();
             if (cause.getTargetType().isEnum()) {
-                message = "Valor inválido para el campo 'type'. Valores permitidos: SAVINGS, CHECKING.";
+                message = Messages.INVALID_ACCOUNT_TYPE;
             }
         }
 
@@ -72,5 +73,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("INVALID_FORMAT", message));
     }
-
 }

@@ -7,6 +7,7 @@ import javax.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.banking.accountms.adapter.ClientGateway;
+import org.banking.accountms.common.Messages;
 import org.banking.accountms.dto.request.CreateAccountRequest;
 import org.banking.accountms.dto.response.AccountResponse;
 import org.banking.accountms.exception.ResourceNotFoundException;
@@ -62,7 +63,7 @@ public class AccountService {
     @Transactional(readOnly = true)
     public Account get(Long accountId) {
         return accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException(Messages.ACCOUNT_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
@@ -90,7 +91,7 @@ public class AccountService {
     public void delete(Long accountId) {
         Account account = self.get(accountId);
         if (account.getBalance().compareTo(BigDecimal.ZERO) != 0) {
-            throw new ValidationException("No se puede eliminar una cuenta con saldo distinto de 0.");
+            throw new ValidationException(Messages.ACCOUNT_BALANCE_NOT_ZERO);
         }
         accountRepository.delete(account);
         log.info("Cuenta eliminada: {}", account.getAccountNumber());
@@ -98,9 +99,9 @@ public class AccountService {
 
     public AccountResponse activate(Long id) {
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException(Messages.ACCOUNT_NOT_FOUND));
         if (account.isActive()) {
-            throw new ValidationException("La cuenta ya está activa");
+            throw new ValidationException(Messages.ACCOUNT_ALREADY_ACTIVE);
         }
         account.setActive(true);
         Account updated = accountRepository.save(account);
@@ -109,9 +110,9 @@ public class AccountService {
 
     public AccountResponse deactivate(Long id) {
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException(Messages.ACCOUNT_NOT_FOUND));
         if (!account.isActive()) {
-            throw new ValidationException("La cuenta ya está inactiva");
+            throw new ValidationException(Messages.ACCOUNT_ALREADY_INACTIVE);
         }
         account.setActive(false);
         Account updated = accountRepository.save(account);
