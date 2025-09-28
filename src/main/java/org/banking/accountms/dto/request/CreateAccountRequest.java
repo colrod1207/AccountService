@@ -6,7 +6,7 @@ import javax.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.banking.accountms.model.AccountType;
+import org.banking.accountms.domain.model.AccountType;
 
 @Data
 @AllArgsConstructor
