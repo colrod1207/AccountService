@@ -2,7 +2,6 @@ package org.banking.accountms.domain.factory;
 
 import org.banking.accountms.domain.model.Account;
 import org.banking.accountms.domain.model.AccountType;
-
 import java.math.BigDecimal;
 
 public class SavingsAccountFactory implements AccountFactory {

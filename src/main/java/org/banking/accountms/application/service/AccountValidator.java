@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.banking.accountms.application.validation.ValidationRule;
 import org.banking.accountms.dto.request.CreateAccountRequest;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
 
 @Component

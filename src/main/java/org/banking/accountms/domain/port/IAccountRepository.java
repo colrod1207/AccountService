@@ -1,7 +1,6 @@
 package org.banking.accountms.domain.port;
 
 import org.banking.accountms.domain.model.Account;
-
 import java.util.List;
 import java.util.Optional;
 

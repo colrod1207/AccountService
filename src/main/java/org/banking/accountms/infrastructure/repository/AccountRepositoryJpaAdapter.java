@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.banking.accountms.domain.model.Account;
 import org.banking.accountms.domain.port.IAccountRepository;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;

@@ -1,7 +1,6 @@
 package org.banking.accountms.domain.model;
 
 import org.banking.accountms.domain.exception.Messages;
-
 import javax.validation.ValidationException;
 import java.math.BigDecimal;
 import java.util.Objects;
